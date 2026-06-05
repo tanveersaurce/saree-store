@@ -18,6 +18,8 @@ const register = asyncHandler(async (req, res) => {
 
   const user = await User.create({ name, email, password, phone, gender });
 
+  sendTokenResponse(user, 201, res, 'Account created successfully! Please verify your email.');
+
   // Send verification email
   try {
     const verificationToken = user.getEmailVerificationToken();
@@ -33,8 +35,7 @@ const register = asyncHandler(async (req, res) => {
   } catch (err) {
     console.error('Email send error:', err);
   }
-
-  sendTokenResponse(user, 201, res, 'Account created successfully! Please verify your email.');
+  
 });
 
 // @desc    Login user
