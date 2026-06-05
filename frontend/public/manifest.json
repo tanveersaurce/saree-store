@@ -1,0 +1,9 @@
+{
+  "name": "Saree Store",
+  "short_name": "SareeStore",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "icons": []
+}
