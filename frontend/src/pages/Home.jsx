@@ -14,6 +14,7 @@ import 'swiper/css/effect-fade';
 import { productAPI, bannerAPI } from '../services/api';
 import ProductCard from '../components/product/ProductCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import banner from '../components/images/banner.png'
 
 const formatPrice = (p) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(p);
 
@@ -24,6 +25,15 @@ const FEATURED_CATEGORIES = [
   { name: 'Cotton', label: 'Cotton Sarees', href: '/collections/cotton-sarees', emoji: '🌿', color: 'from-green-100 to-emerald-200', image: 'https://imgs.search.brave.com/JKKLwF-VowSj8EFFlCF9SPfFOTROu75fqbmab-AoUBU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/Ymlzd2FiYW5nbGEu/aW4vd3AtY29udGVu/dC91cGxvYWRzLzIw/MjYvMDQvMzU1NDVf/RFNDXzYwMjhfQmlz/d2EtQmFuZ2xhLTQw/MHg2MTcud2VicA' },
   { name: 'Banarasi', label: 'Banarasi', href: '/collections/banarasi-sarees', emoji: '🏛️', color: 'from-blue-100 to-indigo-200', image: 'https://imgs.search.brave.com/6ece-6xPvT97g8UiUq60EKmkO8oGte1mv5oZaoHNa08/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9hc3Nl/dHMwLm1pcnJhdy5j/b20vaW1hZ2VzLzEy/OTM0MTg3L2dyZWVu/XzFfbG9uZy5KUEc_/MTczMDIwMTk1MA' },
   { name: 'Casual', label: 'Casual Wear', href: '/collections/casual-sarees', emoji: '🌸', color: 'from-pink-100 to-rose-200', image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=400&h=500&fit=crop' },
+];
+
+const PRINT_CATEGORIES = [
+  { name: 'Bagh', label: 'Bagh', href: '/collections/bridal-sarees', emoji: '👰', color: 'from-rose-100 to-pink-200', image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=400&h=500&fit=crop' },
+  { name: 'Batik', label: 'Batik', href: '/collections/silk-sarees', emoji: '✨', color: 'from-amber-100 to-yellow-200', image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400&h=500&fit=crop' },
+  { name: 'Bagru', label: 'Bagru', href: '/collections/designer-sarees', emoji: '💎', color: 'from-purple-100 to-violet-200', image: 'https://imgs.search.brave.com/JQAJvr47DXRUg4wPpY_9vOo94PIW6pNL3elWH_bEIsc/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jaGlk/aXlhYS5jb20vY2Ru/L3Nob3AvZmlsZXMv/aW1nXzE4NTYuanBn/P3Y9MTc0NjAxNjc0/MSZ3aWR0aD0yMzI4' },
+  { name: 'Chanderi', label: 'Chanderi', href: '/collections/cotton-sarees', emoji: '🌿', color: 'from-green-100 to-emerald-200', image: 'https://imgs.search.brave.com/JKKLwF-VowSj8EFFlCF9SPfFOTROu75fqbmab-AoUBU/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/Ymlzd2FiYW5nbGEu/aW4vd3AtY29udGVu/dC91cGxvYWRzLzIw/MjYvMDQvMzU1NDVf/RFNDXzYwMjhfQmlz/d2EtQmFuZ2xhLTQw/MHg2MTcud2VicA' },
+  { name: 'Dabu', label: 'Dabu', href: '/collections/banarasi-sarees', emoji: '🏛️', color: 'from-blue-100 to-indigo-200', image: 'https://imgs.search.brave.com/6ece-6xPvT97g8UiUq60EKmkO8oGte1mv5oZaoHNa08/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9hc3Nl/dHMwLm1pcnJhdy5j/b20vaW1hZ2VzLzEy/OTM0MTg3L2dyZWVu/XzFfbG9uZy5KUEc_/MTczMDIwMTk1MA' },
+  { name: 'Zari-Zardozi', label: 'Zari-Zardozi', href: '/collections/casual-sarees', emoji: '🌸', color: 'from-pink-100 to-rose-200', image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=400&h=500&fit=crop' },
 ];
 
 const FEATURES = [
@@ -162,7 +172,65 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── Category Grid ─── */}
+      {/* ─── Shop by their print Grid ─── */}
+      <section className="py-14">
+        <div className="text-center mb-10">
+          <p className="font-accent text-saree-rose italic text-lg mb-1">Explore by Printing Techniques</p>
+          <h2 className="section-heading">Shop by their print</h2>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4 py-5 px-5">
+          {PRINT_CATEGORIES.map((cat, i) => (
+            <motion.div
+              key={cat.name}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06 }}
+            >
+              <Link
+                to={cat.href}
+                className="group flex flex-col items-center gap-3 p-4 rounded-2xl hover:bg-saree-blush transition-all duration-300"
+              >
+                <div className="relative w-full aspect-[3/4] rounded-2xl overflow-hidden shadow-card group-hover:shadow-card-hover transition-shadow">
+                  <img
+                    src={cat.image}
+                    alt={cat.label}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="absolute bottom-2 left-0 right-0 text-center text-2xl">{cat.emoji}</span>
+                </div>
+                <span className="font-semibold text-sm text-saree-charcoal group-hover:text-saree-rose transition-colors text-center">
+                  {cat.label}
+                </span>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Banner Strip ─── */}
+      <section className="p-10 ">
+        <div className="">
+          {[
+            { title: 'New Arrivals', sub: 'Fresh styles just added', cta: 'See What\'s New', href: '/collections?filter=new', image: 'https://github.com/tanveersaurce/sareeImg/blob/main/banner.png?raw=true' },
+          ].map((banner) => (
+            <Link key={banner.title} to={banner.href} className="group relative rounded-3xl overflow-hidden h-56 block">
+              <img src={banner.image} alt={banner.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <div className={`absolute inset-0 bg-gradient-to-r ${banner.bg} opacity-70`} />
+              <div className="absolute inset-0 flex flex-col justify-center pl-8">
+                <p className="font-accent text-white/70 italic text-base mb-1">{banner.sub}</p>
+                <h3 className="font-display text-2xl font-bold text-white mb-4">{banner.title}</h3>
+                <span className="inline-flex items-center gap-2 bg-white text-saree-rose font-semibold text-sm px-4 py-2 rounded-full w-fit group-hover:shadow-lg transition-shadow">
+                  {banner.cta} <ArrowRight size={14} />
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ─── Shop by Category Grid ─── */}
       <section className="py-14">
         <div className="text-center mb-10">
           <p className="font-accent text-saree-rose italic text-lg mb-1">Explore by Occasion</p>

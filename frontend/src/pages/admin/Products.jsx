@@ -11,10 +11,23 @@ const formatPrice = (p) => new Intl.NumberFormat('en-IN', { style: 'currency', c
 
 const CATEGORIES = ['Silk Sarees','Cotton Sarees','Designer Sarees','Bridal Sarees','Casual Sarees','Party Wear','Handloom Sarees','Georgette Sarees','Chiffon Sarees','Net Sarees','Banarasi Sarees','Kanjivaram Sarees','Chanderi Sarees','Tussar Sarees','Patola Sarees'];
 const FABRICS = ['Silk','Cotton','Georgette','Chiffon','Net','Satin','Linen','Banarasi','Tussar','Organza','Crepe','Velvet','Brocade','Mixed'];
+const PRINT_TECHNIQUES = [
+  'Bagru',
+  'Batik',
+  'Dabu',
+  'Zari-Zardozi',
+  'Ajrakh',
+  'Bandhani',
+  'Leheriya',
+  'Kalamkari',
+  'Block Print',
+  'Ikat',
+  'Shibori'
+];
 const OCCASIONS_LIST = ['Wedding','Festival','Party','Casual','Office','Bridal','Puja','Sangeet','Reception','Traditional'];
 
 const EMPTY_PRODUCT = {
-  name: '', description: '', shortDescription: '', price: '', discountPrice: '', category: '', fabric: '', occasion: [],
+  name: '', description: '', shortDescription: '', price: '', discountPrice: '', category: '', fabric: '', printTechnique: [], occasion: [],
   stock: '', weight: 500, sareeLength: 5.5, blouseLength: 0.8, blouseIncluded: false,
   careInstructions: 'Dry clean only', tags: '', brand: 'SareeSaanvi Original', origin: 'India',
   isFeatured: false, isTrending: false, isNewArrival: false, isBestSeller: false, isActive: true,
@@ -61,6 +74,7 @@ export default function AdminProducts() {
         stock: +form.stock,
         tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
         occasion: Array.isArray(form.occasion) ? form.occasion : [], // ← fix: safe occasion
+        printTechniques: Array.isArray(form.printTechniques) ? form.printTechniques : [],
       };
       if (editProduct) {
         await productAPI.update(editProduct._id, payload);
@@ -73,6 +87,17 @@ export default function AdminProducts() {
       setShowForm(false);
     } catch {}
     finally { setSaving(false); }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
+    try {
+      await productAPI.delete(id);
+      toast.success('Product deleted!');
+      qc.invalidateQueries(['admin-products']);
+    } catch {
+      toast.error('Failed to delete product');
+    }
   };
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -265,6 +290,32 @@ export default function AdminProducts() {
                   ))}
                 </div>
               </div>
+
+              <div>
+                <label className="input-label">Print Techniques</label>
+                <div className="flex flex-wrap gap-2">
+                  {PRINT_TECHNIQUES.map((pt) => (
+                    <button
+                      key={pt}
+                      type="button"
+                      onClick={() => {
+                        const current = Array.isArray(form.printTechniques) ? form.printTechniques : [];
+                        set('printTechniques', current.includes(pt)
+                          ? current.filter((x) => x !== pt)
+                          : [...current, pt]);
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
+                        Array.isArray(form.printTechniques) && form.printTechniques.includes(pt)
+                          ? 'bg-saree-rose text-white border-saree-rose'
+                          : 'bg-white text-gray-600 border-gray-200 hover:border-saree-rose'
+                      }`}
+                    >
+                      {pt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
 
               <div>
                 <label className="input-label">Tags (comma separated)</label>

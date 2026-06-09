@@ -7,8 +7,8 @@ const { Review } = require('../models/index');
 // @access  Public
 const getProducts = asyncHandler(async (req, res) => {
   const {
-    keyword, category, fabric, occasion, minPrice, maxPrice,
-    minRating, sort, page = 1, limit = 12,
+  keyword, category, fabric, print, occasion, minPrice, maxPrice,
+  minRating, sort, page = 1, limit = 12,
     isFeatured, isTrending, isNewArrival, isBestSeller, inStock,
   } = req.query;
 
@@ -20,6 +20,7 @@ const getProducts = asyncHandler(async (req, res) => {
 
   if (category) filter.category = { $in: category.split(',') };
   if (fabric) filter.fabric = { $in: fabric.split(',') };
+  if (req.query.print) filter.printTechniques = { $in: req.query.print.split(',') };
   if (occasion) filter.occasion = { $in: occasion.split(',') };
   if (minPrice || maxPrice) {
     filter.$or = [

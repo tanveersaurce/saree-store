@@ -6,6 +6,7 @@ import {
   ChevronDown, LogOut, Package, Settings, LayoutDashboard,
 } from 'lucide-react';
 import { useAuthStore, useCartStore, useWishlistStore, useUIStore } from '../../context/store';
+import logo from '../layout/1000119603.webp'
 
 const categories = [
   { name: 'Silk Sarees', href: '/collections/silk-sarees' },
@@ -43,7 +44,7 @@ export default function Navbar({ scrolled }) {
       }`}
     >
       <nav className="page-container">
-        <div className="flex items-center justify-between h-16 lg:h-20">
+        <div className="flex items-center justify-between ">
 
           {/* Mobile menu toggle */}
           <button
@@ -57,15 +58,14 @@ export default function Navbar({ scrolled }) {
           {/* Logo */}
           <Link
             to="/"
-            className="flex flex-col items-center leading-none"
+            className="flex flex-col items-center"
             onClick={closeMobileMenu}
           >
-            <span className="font-display text-2xl lg:text-3xl font-bold text-gradient-brand tracking-tight">
-              Saanvi
-            </span>
-            <span className="font-accent text-[10px] lg:text-xs text-saree-gold tracking-[0.3em] uppercase -mt-0.5">
-              Sarees
-            </span>
+            <img
+              src={logo}
+              alt="Saanvi Sarees"
+              className="h-14 lg:h-16 w-auto"
+            />
           </Link>
 
           {/* Desktop nav */}
