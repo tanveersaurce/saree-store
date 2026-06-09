@@ -77,6 +77,22 @@ const productSchema = new mongoose.Schema(
       required: [true, 'Fabric type is required'],
       enum: ['Silk', 'Cotton', 'Georgette', 'Chiffon', 'Net', 'Satin', 'Linen', 'Banarasi', 'Tussar', 'Organza', 'Crepe', 'Velvet', 'Brocade', 'Mixed'],
     },
+    printTechniques: [{
+      type: String,
+      enum: [
+        'Bagru',
+        'Batik',
+        'Dabu',
+        'Zari-Zardozi',
+        'Ajrakh',
+        'Bandhani',
+        'Leheriya',
+        'Kalamkari',
+        'Block Print',
+        'Ikat',
+        'Shibori'
+      ]
+    }],
     occasion: [{
       type: String,
       enum: ['Wedding', 'Festival', 'Party', 'Casual', 'Office', 'Bridal', 'Puja', 'Sangeet', 'Reception', 'Traditional'],

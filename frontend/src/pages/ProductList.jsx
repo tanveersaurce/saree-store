@@ -18,6 +18,7 @@ const SORT_OPTIONS = [
 
 const FABRICS = ['Silk', 'Cotton', 'Georgette', 'Chiffon', 'Net', 'Banarasi', 'Tussar', 'Organza', 'Crepe', 'Linen'];
 const OCCASIONS = ['Wedding', 'Festival', 'Party', 'Casual', 'Office', 'Bridal', 'Puja', 'Traditional'];
+const PRINTS = ['Bagru', 'Batik', 'Dabu', 'Zari-Zardozi', 'Ajrakh', 'Bandhani', 'Leheriya', 'Kalamkari', 'Block Print', 'Ikat', 'Shibori'];
 const PRICE_RANGES = [
   { label: 'Under ₹5,000', min: 0, max: 5000 },
   { label: '₹5,000 – ₹10,000', min: 5000, max: 10000 },
@@ -59,6 +60,7 @@ export default function ProductList() {
   const sort     = searchParams.get('sort') || 'newest';
   const page     = parseInt(searchParams.get('page') || '1');
   const fabrics  = searchParams.get('fabric')?.split(',').filter(Boolean) || [];
+  const prints   = searchParams.get('print')?.split(',').filter(Boolean) || [];
   const occasions= searchParams.get('occasion')?.split(',').filter(Boolean) || [];
   const minPrice = searchParams.get('minPrice') || '';
   const maxPrice = searchParams.get('maxPrice') || '';
@@ -71,6 +73,7 @@ export default function ProductList() {
     ...(keyword && { keyword }),
     ...(category && { category: formatCategoryName(category) }),
     ...(fabrics.length && { fabric: fabrics.join(',') }),
+    ...(prints.length && {print: prints.join(',') }),
     ...(occasions.length && { occasion: occasions.join(',') }),
     ...(minPrice && { minPrice }),
     ...(maxPrice && { maxPrice }),
@@ -112,7 +115,7 @@ export default function ProductList() {
 
   const clearAll = () => setSearchParams({});
 
-  const hasFilters = fabrics.length || occasions.length || minPrice || minRating;
+  const hasFilters = fabrics.length || prints.length || occasions.length || minPrice || minRating;
 
   const FiltersContent = () => (
     <div className="space-y-1">
@@ -147,6 +150,18 @@ export default function ProductList() {
               <input type="checkbox" checked={fabrics.includes(fab)} onChange={() => toggleArray('fabric', fab, fabrics)}
                 className="w-4 h-4 rounded border-gray-300 text-saree-rose focus:ring-saree-rose accent-pink-600" />
               <span className={`text-sm ${fabrics.includes(fab) ? 'text-saree-rose font-medium' : 'text-gray-600 group-hover:text-saree-rose'}`}>{fab}</span>
+            </label>
+          ))}
+        </div>
+      </FilterAccordion>
+
+      <FilterAccordion title="Print Technique">
+        <div className="space-y-2">
+          {PRINTS.map((pri) => (
+            <label key={pri} className="flex items-center gap-2 cursor-pointer group">
+              <input type="checkbox" checked={prints.includes(pri)} onChange={() => toggleArray('print', pri, prints)}
+                className="w-4 h-4 rounded border-gray-300 text-saree-rose focus:ring-saree-rose accent-pink-600" />
+              <span className={`text-sm ${prints.includes(pri) ? 'text-saree-rose font-medium' : 'text-gray-600 group-hover:text-saree-rose'}`}>{pri}</span>
             </label>
           ))}
         </div>
@@ -242,11 +257,16 @@ export default function ProductList() {
             </div>
 
             {/* Active filter chips */}
-            {(fabrics.length > 0 || occasions.length > 0 || minPrice) && (
+            {(fabrics.length > 0 || prints.length > 0 || occasions.length > 0 || minPrice) && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {fabrics.map((f) => (
                   <span key={f} className="flex items-center gap-1.5 bg-saree-blush text-saree-rose text-xs px-3 py-1.5 rounded-full font-medium">
                     {f} <button onClick={() => toggleArray('fabric', f, fabrics)}><X size={11} /></button>
+                  </span>
+                ))}
+                {prints.map((p) => (
+                  <span key={p} className="flex items-center gap-1.5 bg-saree-blush text-saree-rose text-xs px-3 py-1.5 rounded-full font-medium">
+                    {p} <button onClick={() => toggleArray('print', p, prints)}><X size={11} /></button>
                   </span>
                 ))}
                 {occasions.map((o) => (
