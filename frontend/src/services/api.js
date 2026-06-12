@@ -1,7 +1,7 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_URL = 'https://saree-store-4mmg.onrender.com/api' || '/api';
+const API_URL = 'http://localhost:5000/api' || 'https://saree-store-4mmg.onrender.com/api' || '/api';
 
 const api = axios.create({
   baseURL: API_URL,
@@ -134,6 +134,12 @@ export const uploadAPI = {
   uploadAvatar: (formData) =>
     api.post('/upload/avatar', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   deleteImage: (publicId) => api.delete(`/upload/product/${publicId}`),
+};
+
+export const categoryAPI = {
+  getAll: () => api.get('/categories'),
+  add: (name) => api.post('/categories', { name }),
+  delete: (id) => api.delete(`/categories/${id}`),
 };
 
 export default api;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useParams } from 'react-router-dom';
+import { useSearchParams, useParams, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal, X, ChevronDown, Grid3X3, LayoutList, Search } from 'lucide-react';
@@ -56,10 +56,24 @@ export default function ProductList() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [gridCols, setGridCols] = useState(3);
 
+  const location = useLocation();
+
+  // Filter change hone pe top pe scroll mat karo
+  useEffect(() => {
+    // kuch nahi karna — scroll maintain rahega
+  }, []);
+
+
   const keyword  = searchParams.get('q') || '';
   const sort     = searchParams.get('sort') || 'newest';
   const page     = parseInt(searchParams.get('page') || '1');
   const fabrics  = searchParams.get('fabric')?.split(',').filter(Boolean) || [];
+  
+  // Sirf page number change hone pe top pe scroll karo
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [page]);
+  
   const prints   = searchParams.get('print')?.split(',').filter(Boolean) || [];
   const occasions= searchParams.get('occasion')?.split(',').filter(Boolean) || [];
   const minPrice = searchParams.get('minPrice') || '';

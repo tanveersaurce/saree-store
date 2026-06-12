@@ -30,7 +30,7 @@ export default function AdminLayout() {
     <div className={`flex flex-col h-full bg-saree-charcoal text-white ${mobile ? '' : 'w-64'}`}>
       <div className="p-5 border-b border-white/10">
         <Link to="/admin" className="flex flex-col">
-          <span className="font-display text-xl font-bold text-saree-crimson">Saanvi Admin</span>
+          <span className="font-display text-xl font-bold text-saree-crimson">Saaj Admin</span>
           <span className="text-white/40 text-xs tracking-widest uppercase mt-0.5">Dashboard</span>
         </Link>
       </div>

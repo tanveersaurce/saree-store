@@ -1,23 +1,14 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import { categoryAPI } from '../../services/api';
 import {
   ShoppingBag, Heart, Search, User, Menu, X,
   ChevronDown, LogOut, Package, Settings, LayoutDashboard,
 } from 'lucide-react';
 import { useAuthStore, useCartStore, useWishlistStore, useUIStore } from '../../context/store';
 import logo from '../layout/1000119603.webp'
-
-const categories = [
-  { name: 'Silk Sarees', href: '/collections/silk-sarees' },
-  { name: 'Banarasi', href: '/collections/banarasi-sarees' },
-  { name: 'Kanjivaram', href: '/collections/kanjivaram-sarees' },
-  { name: 'Designer', href: '/collections/designer-sarees' },
-  { name: 'Bridal', href: '/collections/bridal-sarees' },
-  { name: 'Cotton', href: '/collections/cotton-sarees' },
-  { name: 'Handloom', href: '/collections/handloom-sarees' },
-  { name: 'Party Wear', href: '/collections/party-wear' },
-];
 
 export default function Navbar({ scrolled }) {
   const navigate = useNavigate();
@@ -28,6 +19,17 @@ export default function Navbar({ scrolled }) {
 
   const [collectionsOpen, setCollectionsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+
+  const { data: catData } = useQuery({
+    queryKey: ['navbar-categories'],
+    queryFn: () => categoryAPI.getAll().then((r) => r.data),
+    staleTime: 10 * 60 * 1000, // 10 min — baar baar fetch na ho
+  });
+
+  const categories = catData?.categories?.map((cat) => ({
+    name: cat.name,
+    href: `/collections/${cat.slug}`,
+  })) || [];
 
   const wishlistCount = productIds instanceof Set ? productIds.size : (productIds?.length || 0);
 

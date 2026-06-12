@@ -2,28 +2,15 @@ import React, { useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Plus, Search, Edit2, Trash2, Eye, Package, Star, ChevronDown } from 'lucide-react';
-import { productAPI } from '../../services/api';
+import { Plus, Search, Edit2, Trash2, Eye, Package, Star, Tag } from 'lucide-react';
+import { productAPI, categoryAPI } from '../../services/api';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import toast from 'react-hot-toast';
 
 const formatPrice = (p) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(p || 0);
 
-const CATEGORIES = ['Silk Sarees','Cotton Sarees','Designer Sarees','Bridal Sarees','Casual Sarees','Party Wear','Handloom Sarees','Georgette Sarees','Chiffon Sarees','Net Sarees','Banarasi Sarees','Kanjivaram Sarees','Chanderi Sarees','Tussar Sarees','Patola Sarees'];
 const FABRICS = ['Silk','Cotton','Georgette','Chiffon','Net','Satin','Linen','Banarasi','Tussar','Organza','Crepe','Velvet','Brocade','Mixed'];
-const PRINT_TECHNIQUES = [
-  'Bagru',
-  'Batik',
-  'Dabu',
-  'Zari-Zardozi',
-  'Ajrakh',
-  'Bandhani',
-  'Leheriya',
-  'Kalamkari',
-  'Block Print',
-  'Ikat',
-  'Shibori'
-];
+const PRINT_TECHNIQUES = ['Bagru','Batik','Dabu','Zari-Zardozi','Ajrakh','Bandhani','Leheriya','Kalamkari','Block Print','Ikat','Shibori'];
 const OCCASIONS_LIST = ['Wedding','Festival','Party','Casual','Office','Bridal','Puja','Sangeet','Reception','Traditional'];
 
 const EMPTY_PRODUCT = {
@@ -43,10 +30,22 @@ export default function AdminProducts() {
   const [form, setForm] = useState(EMPTY_PRODUCT);
   const [saving, setSaving] = useState(false);
 
+  // ─── Category States ──────────────────────────────────────────────────────
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
+  const [addingCategory, setAddingCategory] = useState(false);
+
+  // ─── Products Query ───────────────────────────────────────────────────────
   const { data, isLoading } = useQuery({
     queryKey: ['admin-products', search, page],
     queryFn: () => productAPI.getAll({ keyword: search, page, limit: 15, admin: true }).then((r) => r.data),
     keepPreviousData: true,
+  });
+
+  // ─── Categories Query ─────────────────────────────────────────────────────
+  const { data: catData, refetch: refetchCategories } = useQuery({
+    queryKey: ['admin-categories'],
+    queryFn: () => categoryAPI.getAll().then((r) => r.data),
   });
 
   const openCreate = () => { setEditProduct(null); setForm(EMPTY_PRODUCT); setShowForm(true); };
@@ -58,7 +57,7 @@ export default function AdminProducts() {
       discountPrice: p.discountPrice || '',
       stock: p.stock || '',
       tags: (p.tags || []).join(', '),
-      occasion: Array.isArray(p.occasion) ? p.occasion : [], // ← fix: always ensure array
+      occasion: Array.isArray(p.occasion) ? p.occasion : [],
     });
     setShowForm(true);
   };
@@ -73,7 +72,7 @@ export default function AdminProducts() {
         discountPrice: form.discountPrice ? +form.discountPrice : undefined,
         stock: +form.stock,
         tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
-        occasion: Array.isArray(form.occasion) ? form.occasion : [], // ← fix: safe occasion
+        occasion: Array.isArray(form.occasion) ? form.occasion : [],
         printTechniques: Array.isArray(form.printTechniques) ? form.printTechniques : [],
       };
       if (editProduct) {
@@ -95,39 +94,74 @@ export default function AdminProducts() {
       await productAPI.delete(id);
       toast.success('Product deleted!');
       qc.invalidateQueries(['admin-products']);
-    } catch {
-      toast.error('Failed to delete product');
-    }
+    } catch { toast.error('Failed to delete product'); }
+  };
+
+  // ─── Category Handlers ────────────────────────────────────────────────────
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) { toast.error('Category name required'); return; }
+    setAddingCategory(true);
+    try {
+      await categoryAPI.add(newCategory.trim());
+      toast.success('Category added!');
+      setNewCategory('');
+      refetchCategories();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to add category');
+    } finally { setAddingCategory(false); }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    if (!window.confirm('Delete this category?')) return;
+    try {
+      await categoryAPI.delete(id);
+      toast.success('Category deleted!');
+      refetchCategories();
+    } catch { toast.error('Failed to delete category'); }
   };
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  // ← fix: safely handle occasion toggle even if it's undefined
   const toggleOccasion = (occ) => {
     const current = Array.isArray(form.occasion) ? form.occasion : [];
     set('occasion', current.includes(occ) ? current.filter((o) => o !== occ) : [...current, occ]);
   };
 
+  // Categories — DB se aaye + hardcoded fallback
+  const categoryList = catData?.categories?.map((c) => c.name) || [];
+
   return (
     <>
       <Helmet><title>Products | Admin</title></Helmet>
       <div className="space-y-5">
+
+        {/* ─── Header ─────────────────────────────────────────────────────── */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div>
             <h1 className="font-display text-2xl font-bold text-saree-charcoal">Products</h1>
             <p className="text-gray-400 text-sm">{data?.pagination?.total || 0} total products</p>
           </div>
-          <button onClick={openCreate} className="btn-primary gap-2 py-2.5"><Plus size={15} /> Add Product</button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowCategoryModal(true)}
+              className="flex items-center gap-2 py-2.5 px-4 rounded-xl border-2 border-saree-rose text-saree-rose font-semibold text-sm hover:bg-saree-blush transition-colors"
+            >
+              <Tag size={15} /> Add Category
+            </button>
+            <button onClick={openCreate} className="btn-primary gap-2 py-2.5">
+              <Plus size={15} /> Add Product
+            </button>
+          </div>
         </div>
 
-        {/* Search */}
+        {/* ─── Search ─────────────────────────────────────────────────────── */}
         <div className="relative max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input type="text" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             placeholder="Search products..." className="input-field pl-9 py-2.5 text-sm" />
         </div>
 
-        {/* Table */}
+        {/* ─── Table ──────────────────────────────────────────────────────── */}
         <div className="bg-white rounded-2xl shadow-card overflow-hidden">
           {isLoading ? <LoadingSpinner /> : (
             <div className="overflow-x-auto">
@@ -198,7 +232,7 @@ export default function AdminProducts() {
           )}
         </div>
 
-        {/* Pagination */}
+        {/* ─── Pagination ──────────────────────────────────────────────────── */}
         {data?.pagination?.pages > 1 && (
           <div className="flex justify-center gap-2">
             {Array.from({ length: data.pagination.pages }, (_, i) => i + 1).map((p) => (
@@ -211,7 +245,66 @@ export default function AdminProducts() {
         )}
       </div>
 
-      {/* Product form modal */}
+      {/* ─── Category Modal ───────────────────────────────────────────────────── */}
+      {showCategoryModal && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+          >
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <h2 className="font-display text-xl font-bold text-saree-charcoal">Categories</h2>
+              <button onClick={() => setShowCategoryModal(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-colors">✕</button>
+            </div>
+
+            {/* List */}
+            <div className="px-6 py-4 max-h-64 overflow-y-auto space-y-2">
+              {categoryList.length === 0 && (
+                <p className="text-gray-400 text-sm text-center py-4">No categories yet — add one below</p>
+              )}
+              {catData?.categories?.map((cat) => (
+                <div key={cat._id} className="flex items-center justify-between py-2.5 px-3 rounded-xl bg-gray-50 hover:bg-saree-blush transition-colors">
+                  <span className="text-sm font-medium text-saree-charcoal">{cat.name}</span>
+                  <button
+                    onClick={() => handleDeleteCategory(cat._id)}
+                    className="p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Add Input */}
+            <div className="px-6 py-4 border-t border-gray-100">
+              <label className="input-label">New Category Name</label>
+              <div className="flex gap-2 mt-1">
+                <input
+                  type="text"
+                  value={newCategory}
+                  onChange={(e) => setNewCategory(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddCategory()}
+                  placeholder="e.g. Banarasi Sarees"
+                  className="input-field flex-1"
+                />
+                <button
+                  onClick={handleAddCategory}
+                  disabled={addingCategory}
+                  className="btn-primary px-4 py-2.5"
+                >
+                  {addingCategory
+                    ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    : <Plus size={16} />
+                  }
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* ─── Product Form Modal ───────────────────────────────────────────────── */}
       {showForm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
@@ -222,7 +315,6 @@ export default function AdminProducts() {
             </div>
 
             <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
-              {/* Image URL quick input */}
               <div>
                 <label className="input-label">Main Image URL</label>
                 <input type="url" value={form.images?.[0]?.url || ''} onChange={(e) => set('images', [{ ...form.images[0], url: e.target.value }])} placeholder="https://..." className="input-field" />
@@ -237,7 +329,8 @@ export default function AdminProducts() {
                   <label className="input-label">Category *</label>
                   <select value={form.category} onChange={(e) => set('category', e.target.value)} className="input-field">
                     <option value="">Select category</option>
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    {/* DB se aaye categories */}
+                    {categoryList.map((c) => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
@@ -267,7 +360,7 @@ export default function AdminProducts() {
 
               <div>
                 <label className="input-label">Short Description</label>
-                <input type="text" value={form.shortDescription} onChange={(e) => set('shortDescription', e.target.value)} className="input-field" placeholder="One-liner summary (shown in listings)" />
+                <input type="text" value={form.shortDescription} onChange={(e) => set('shortDescription', e.target.value)} className="input-field" placeholder="One-liner summary" />
               </div>
 
               <div>
@@ -295,27 +388,21 @@ export default function AdminProducts() {
                 <label className="input-label">Print Techniques</label>
                 <div className="flex flex-wrap gap-2">
                   {PRINT_TECHNIQUES.map((pt) => (
-                    <button
-                      key={pt}
-                      type="button"
+                    <button key={pt} type="button"
                       onClick={() => {
                         const current = Array.isArray(form.printTechniques) ? form.printTechniques : [];
-                        set('printTechniques', current.includes(pt)
-                          ? current.filter((x) => x !== pt)
-                          : [...current, pt]);
+                        set('printTechniques', current.includes(pt) ? current.filter((x) => x !== pt) : [...current, pt]);
                       }}
                       className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${
                         Array.isArray(form.printTechniques) && form.printTechniques.includes(pt)
                           ? 'bg-saree-rose text-white border-saree-rose'
                           : 'bg-white text-gray-600 border-gray-200 hover:border-saree-rose'
-                      }`}
-                    >
+                      }`}>
                       {pt}
                     </button>
                   ))}
                 </div>
               </div>
-
 
               <div>
                 <label className="input-label">Tags (comma separated)</label>

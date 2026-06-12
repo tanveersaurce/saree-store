@@ -1,5 +1,5 @@
 const express = require('express');
-const mongoose = require('mongoose');
+const connectDB = require('./config/db');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -7,7 +7,6 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 require('dotenv').config();
 
-// Route imports
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -26,22 +25,21 @@ const { errorHandler, notFound } = require('./middleware/errorMiddleware');
 const app = express();
 app.set('trust proxy', 1);
 
-// ─── Security Middleware ───────────────────────────────────────────────────────
+// ─── Security ─────────────────────────────────────────────────────────────────
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
-// Rate limiter
+// ─── Rate Limiting ────────────────────────────────────────────────────────────
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 200,
-  message: 'Too many requests from this IP, please try again after 15 minutes',
+  message: 'Too many requests, please try again after 15 minutes',
 });
 app.use('/api/', limiter);
 
-// Auth-specific stricter limiter
 const authLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
+  windowMs: 60 * 60 * 1000,
   max: 20,
   message: 'Too many login attempts, please try again after an hour',
 });
@@ -50,7 +48,11 @@ app.use('/api/auth/register', authLimiter);
 
 // ─── CORS ─────────────────────────────────────────────────────────────────────
 app.use(cors({
-  origin: [process.env.FRONTEND_URL || 'http://localhost:3000'],
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    process.env.FRONTEND_URL,
+  ].filter(Boolean),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -78,7 +80,23 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ─── API Routes ───────────────────────────────────────────────────────────────
+// ─── V1 Routes ────────────────────────────────────────────────────────────────
+const v1 = express.Router();
+v1.use('/auth', authRoutes);
+v1.use('/products', productRoutes);
+v1.use('/users', userRoutes);
+v1.use('/orders', orderRoutes);
+v1.use('/cart', cartRoutes);
+v1.use('/wishlist', wishlistRoutes);
+v1.use('/reviews', reviewRoutes);
+v1.use('/upload', uploadRoutes);
+v1.use('/payment', paymentRoutes);
+v1.use('/banners', bannerRoutes);
+v1.use('/admin', adminRoutes);
+v1.use('/categories', categoryRoutes);
+app.use('/api/v1', v1);
+
+// ─── Legacy Routes (frontend update hone tak) ────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
@@ -92,7 +110,7 @@ app.use('/api/banners', bannerRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 
-// ─── Serve Frontend in Production ─────────────────────────────────────────────
+// ─── Production Frontend ──────────────────────────────────────────────────────
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/build')));
   app.get('*', (req, res) => {
@@ -104,20 +122,6 @@ if (process.env.NODE_ENV === 'production') {
 app.use(notFound);
 app.use(errorHandler);
 
-// ─── Database Connection ──────────────────────────────────────────────────────
-const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error(`❌ MongoDB connection error: ${error.message}`);
-    process.exit(1);
-  }
-};
-
 // ─── Start Server ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 
@@ -128,7 +132,6 @@ connectDB().then(() => {
   });
 });
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
   console.error(`❌ Unhandled Rejection: ${err.message}`);
   process.exit(1);

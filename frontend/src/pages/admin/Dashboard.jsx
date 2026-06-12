@@ -38,7 +38,7 @@ export default function AdminDashboard() {
 
   return (
     <>
-      <Helmet><title>Admin Dashboard | SareeSaanvi</title></Helmet>
+      <Helmet><title>Admin Dashboard | Saaj</title></Helmet>
 
       <div className="space-y-6">
         <div>
