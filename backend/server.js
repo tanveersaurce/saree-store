@@ -23,6 +23,7 @@ const categoryRoutes = require('./routes/categoryRoutes');
 const { errorHandler, notFound } = require('./middleware/errorMiddleware');
 
 const app = express();
+app.use(express.static("public"))
 app.set('trust proxy', 1);
 
 // ─── Security ─────────────────────────────────────────────────────────────────
@@ -71,14 +72,21 @@ if (process.env.NODE_ENV === 'development') {
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ─── Health Check ─────────────────────────────────────────────────────────────
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    message: 'SareeSaanvi API is running',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-  });
-});
+// app.get('/api/health', (req, res) => {
+//   res.json({
+//     status: 'ok',
+//     message: 'SareeSaanvi API is running',
+//     timestamp: new Date().toISOString(),
+//     environment: process.env.NODE_ENV,
+//   });
+// });
+
+// app.get('/health', (req, res)=>{
+//   res.status(200).json({
+//     message: "ok",
+//     success: true
+//   })
+// })
 
 // ─── V1 Routes ────────────────────────────────────────────────────────────────
 const v1 = express.Router();

@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunksaree_store_frontend=self.webpackChunksaree_store_frontend||[]).push([[64],{2064(e,r,s){s.r(r),s.d(r,{default:()=>t.LA});var t=s(1230)}}]);

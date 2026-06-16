@@ -1,7 +1,7 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const API_URL = 'http://localhost:5000/api' || 'https://saree-store-4mmg.onrender.com/api' || '/api';
+const API_URL =  '/api';
 
 const api = axios.create({
   baseURL: API_URL,
